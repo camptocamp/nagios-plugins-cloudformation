@@ -44,7 +44,7 @@ class unused_stacks:
         '''
         Get all stacks
         '''
-        self.__print('Getting security stacks')
+        self.__print('Getting cloudformation stacks')
         stacks = self.__cfn_client.list_stacks(
                 StackStatusFilter=[
                     'CREATE_FAILED',
@@ -61,7 +61,7 @@ class unused_stacks:
 
     def __check(self):
         '''
-        Ensure no unused security group is present
+        Ensure no unused stack is present
         '''
         if len(self.__stacks.keys()) > 0:
             self.out_msg = '%i stacks in a bad state' % len(self.__stacks.keys())
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug',  '-d',   help='Set verbosity level.', default=0, type=int)
     parser.add_argument('--profile', '-p', help='Pass AWS profile name.', default='default')
     parser.add_argument('--region', '-r',   help='Set AWS region.', default='eu-west-1')
-    parser.add_argument('--clean',  help='Clean unused security groups', action='store_const', const=True)
+    parser.add_argument('--clean',  help='Clean unused cloudformation stacks', action='store_const', const=True)
 
     args = parser.parse_args()
 
