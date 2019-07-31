@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
 from datetime import datetime
+from prometheus_client import start_http_server, Summary
+from prometheus_client import Gauge
 import argparse
 import boto3
 import sys
 import time
+
+
 
 class unused_stacks:
     def __init__(self, args):
@@ -38,7 +42,7 @@ class unused_stacks:
         Simple "print" wrapper: sends to stdout if debug is > 0
         '''
         if level <= self.__debug:
-            print string
+            print (string)
 
     def __get_stacks(self):
         '''
@@ -63,6 +67,8 @@ class unused_stacks:
         '''
         Ensure no unused stack is present
         '''
+        g = Gauge('unused_stacks', 'Count of unused cloud formation stacks')
+        g.set(len(self.__stacks.keys()))
         if len(self.__stacks.keys()) > 0:
             self.out_msg = '%i stacks in a bad state' % len(self.__stacks.keys())
             self.out_status = 2
@@ -80,6 +86,13 @@ class unused_stacks:
                     StackName=stack
                     )
 
+    REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')                    
+    # Decorate function with metric.
+    @REQUEST_TIME.time()
+    def process_request(self, t):
+        """A dummy function that takes some time."""
+        time.sleep(t)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Check if there are opened security groups')
@@ -87,9 +100,18 @@ if __name__ == '__main__':
     parser.add_argument('--profile', '-p', help='Pass AWS profile name.', default='default')
     parser.add_argument('--region', '-r',   help='Set AWS region.', default='eu-west-1')
     parser.add_argument('--clean',  help='Clean unused cloudformation stacks', action='store_const', const=True)
+    parser.add_argument('--exporter',  help='run as prometheus exporter on default port 8080 ', action='store_const', const=True)
+    parser.add_argument('--exporter_port',  help='if run as prometheus exporter on default port 8080, change port here ', default=8080, type=int)
 
     args = parser.parse_args()
-
+    print (args.exporter)
     worker = unused_stacks(args)
-    print worker.out_msg
-    sys.exit(worker.out_status)
+    if args.exporter:
+        print("exporter mode on port %i"% args.exporter_port)
+        start_http_server(args.exporter_port)
+        while True:
+            worker.process_request(4)
+
+    else:
+        print (worker.out_msg)
+        sys.exit(worker.out_status)
