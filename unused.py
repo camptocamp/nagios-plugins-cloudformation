@@ -86,7 +86,7 @@ class unused_stacks:
                     StackName=stack
                     )
 
-    REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')                    
+    REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
     # Decorate function with metric.
     @REQUEST_TIME.time()
     def process_request(self, t):
