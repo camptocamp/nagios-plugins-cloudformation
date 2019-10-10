@@ -52,7 +52,7 @@ kill () {
 }
 
 prune () {
-    docker container prune -f 
+    docker container prune -f
 }
 
 "$@"
